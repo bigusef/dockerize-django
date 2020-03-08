@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:alpine
+    container_name: project-postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - database:/var/lib/postgresql/data
+
+  django:
+    build: .
+    container_name: project-django
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./app:/usr/src/app
+      - static:/user/src/static
+      - media:/user/src/media
+    depends_on:
+      - postgres
+    expose:
+      - 8000
+
+  nginx:
+    image: nginx:alpine
+    container_name: project-nginx
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/application.com.conf
+      - static:/home/static
+      - media:/home/media
+    depends_on:
+      - postgres
+      - django
+    ports:
+      - 80:80
+
+volumes:
+  database:
+  static:
+  media:
